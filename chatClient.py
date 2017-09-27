@@ -105,16 +105,18 @@ if __name__ == "__main__":
 
         # Get the list sockets which are readable
         read_sockets, write_sockets, error_sockets = select.select(socket_list, [], [])
+        chatMessageReference = randint(1, 10000)
 
         for sock in read_sockets:
             # Incoming message from chatServer
 
             if sock == s:
                 data = sock.recv(4096)
+                print data
                 authResponse = data.split()
 
                 # If OKAY
-                if data == commands[3] + " " + str(chatClientReference):
+                if data == commands[3] + " " + str(chatMessageReference):
                     sys.stdout.write(data)
                     prompt()
 
@@ -130,9 +132,9 @@ if __name__ == "__main__":
             else:
                 if AUTHENTICATED == True:
                     # Random number generated for chatClient Reference, ask for name and password
-                    chatMessageReference = randint(1, 10000)
+                    
                     prompt()
-                    chatMessage = sys.stdin.readline()
+                    chatMessagejk = sys.stdin.readline()
                     chatMessageRcvr = raw_input("Enter * for broadcasting or Reference Number of specific client: ")
 
                     chatMessage = commands[1]
@@ -141,7 +143,7 @@ if __name__ == "__main__":
                     chatMessage += " \r\n"
                     chatMessage += chatMessageRcvr
                     chatMessage += "\r\n"
-                    chatMessage += chatMessage
+                    chatMessage += chatMessagejk
 
                 s.send(chatMessage)
                 prompt()

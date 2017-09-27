@@ -65,7 +65,7 @@ if __name__ == "__main__":
                 cur_state = state.CONN
                 print "Client (%s, %s) connected" % addr
 
-                broadcast_data(sockfd, "[%s:%s] entered room\n" % addr)
+                #broadcast_data(sockfd, "[%s:%s] entered room\n" % addr)
 
             # Some incoming message from a client
             else:
@@ -80,14 +80,14 @@ if __name__ == "__main__":
                     line2 = auth_str[2]
                     line3 = auth_str[3]
                     
-                    if clientRefNo:
-                        if clientRefNo[ref_no]:
-                            sock.send("FAIL "+ref_no+"\r\nNUMBER")
-                        else:
-                            clientRefNo[ref_no] = sock
 
                     try:
                         if command == "AUTH":
+
+                            # if clientRefNo[ref_no]:
+                            #     sock.send("FAIL "+ref_no+"\r\nNUMBER")
+                            # else:
+                            clientRefNo[ref_no] = sock
                         
                             if line3 == "dnServer":
                                 cur_state = state.AUTH
@@ -96,11 +96,13 @@ if __name__ == "__main__":
                                 sock.send("FAIL "+ref_no+"\r\nPASSWORD")
 
                         elif command == "SEND" and cur_state == state.AUTH:
-                            print "ok in"
                             cur_state == state.SEND
                             sock.send("OKAY "+ref_no)
+
                             if line2 == "*":
+                                print line3
                                 broadcast_data(sock, "\r" + '<' + str(sock.getpeername()) + '> ' + line3)
+
                             else:
                                 clientRefNo[line2].send(line3)
 
