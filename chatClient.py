@@ -1,52 +1,59 @@
-# chat_client.py
+# dnClient.py
+# Example Usage: python chatClient.py localhost 42015
 
-import sys, socket, select
- 
-def chat_client():
-    if(len(sys.argv) < 3) :
-        print 'Usage : python chat_client.py hostname port'
+import socket
+import select
+import sys
+
+
+def prompt():
+    sys.stdout.write('<!--YOU--!> ')
+    sys.stdout.flush()
+
+
+# Main function
+if __name__ == "__main__":
+
+    if len(sys.argv) < 3:
+        print 'Usage : python chatClient.py hostname port'
         sys.exit()
 
     host = sys.argv[1]
     port = int(sys.argv[2])
-     
+
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.settimeout(2)
-     
-    # connect to remote host
-    try :
+
+    # Connect to chatServer
+    try:
         s.connect((host, port))
-    except :
-        print 'Unable to connect'
+    except:
+        print 'Unable to connect to chatServer.'
         sys.exit()
-     
-    print 'Connected to remote host. You can start sending messages'
-    sys.stdout.write('[Me] '); sys.stdout.flush()
-     
+
+    print 'Connected to chatServer.'
+    prompt()
+
     while 1:
         socket_list = [sys.stdin, s]
-         
+
         # Get the list sockets which are readable
-        read_sockets, write_sockets, error_sockets = select.select(socket_list , [], [])
-         
-        for sock in read_sockets:            
+        read_sockets, write_sockets, error_sockets = select.select(socket_list, [], [])
+
+        for sock in read_sockets:
+            # Incoming message from chatServer
             if sock == s:
-                # incoming message from remote server, s
                 data = sock.recv(4096)
-                if not data :
-                    print '\nDisconnected from chat server'
+                if not data:
+                    print '\nDisconnected from chatServer'
                     sys.exit()
-                else :
-                    #print data
+                else:
+                    # Print data
                     sys.stdout.write(data)
-                    sys.stdout.write('[Me] '); sys.stdout.flush()     
-            
-            else :
-                # user entered a message
+                    prompt()
+
+            # User entered a message
+            else:
                 msg = sys.stdin.readline()
                 s.send(msg)
-                sys.stdout.write('[Me] '); sys.stdout.flush() 
-
-if __name__ == "__main__":
-
-    sys.exit(chat_client())
+                prompt()
