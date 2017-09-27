@@ -4,6 +4,7 @@
 import socket
 import select
 import sys
+from random import randint
 
 
 def prompt():
@@ -32,6 +33,32 @@ if __name__ == "__main__":
         sys.exit()
 
     print 'Connected to chatServer.'
+
+    #Protocol implementation
+
+    commands = ['AUTH', 'SEND', 'ACKN']
+    # Random number generated for chatClient Reference, ask for name and password
+    chatClientReference = randint(1, 100)
+    chatClientName = raw_input("Enter name: ")
+    chatClientPassword = raw_input("Enter password: ")
+
+    authMessage = commands[0]
+    authMessage += " "
+    authMessage += chatClientReference
+    authMessage += " \r\n"
+    authMessage += chatClientName
+    authMessage += "\r\n"
+    authMessage += chatClientPassword
+
+    s.send(authMessage)
+    authResponse = s.recv(4096)
+    authResponseString = authResponse.decode('utf-8')
+    if authResponseString == "OKAY":
+        print "Goto next step"
+        sys.stdout.write(authResponse)
+    elif authResponseString == "FAIL":
+        sys.stdout.write(authResponse)
+
     prompt()
 
     while 1:
