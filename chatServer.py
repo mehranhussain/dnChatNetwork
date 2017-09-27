@@ -37,6 +37,8 @@ if __name__ == "__main__":
 
     print "chatServer started on port " + str(PORT)
 
+    clientRefNo = {}
+
     while 1:
         # Get the list sockets which are ready to be read through select
         read_sockets, write_sockets, error_sockets = select.select(CONNECTION_LIST, [], [])
@@ -62,25 +64,29 @@ if __name__ == "__main__":
                     auth_str = data.split()
                     command = auth_str[0]
                     ref_no = auth_str[1]
-                    username = auth_str[2]
-                    password = auth_str[3]
+                    line2 = auth_str[2]
+                    line3 = auth_str[3]
+
+
+                    clientRefNo[ref_no] = sock
 
                     print data
 
                     try:
                         if command == "AUTH":
                         
-                            if password == "dnServer":
+                            if line3 == "dnServer":
                                 sock.send("OKAY "+ref_no)
-                                print "sent"
                             else:
                                 sock.send("FAIL "+ref_no+"\r\nPASSWORD")
 
-                        #elif command == "SEND":
+                        elif command == "SEND":
+                            sock.send("OKAY "+ref_no)
+                            if line2 == "*":
+                                broadcast_data(sock, "\r" + '<' + str(sock.getpeername()) + '> ' + line3)
+                            else:
+                                clientRefNo[line2].send(line3)
                         #elif command == "ACKN":
-          
-                        if data:
-                            broadcast_data(sock, "\r" + '<' + str(sock.getpeername()) + '> ' + data)
                     except:
                         # If chatClient pressed ctrl+c for example
                         sock.close()

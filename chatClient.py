@@ -27,7 +27,7 @@ if __name__ == "__main__":
 
     # Connect to chatServer
     try:
-        s.connect((host, port))
+        s.connect_ex((host, port))
     except:
         print 'Unable to connect to chatServer.'
         sys.exit()
