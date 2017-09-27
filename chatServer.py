@@ -67,7 +67,6 @@ if __name__ == "__main__":
                     line2 = auth_str[2]
                     line3 = auth_str[3]
 
-
                     clientRefNo[ref_no] = sock
 
                     print data

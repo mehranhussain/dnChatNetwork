@@ -45,7 +45,7 @@ if __name__ == "__main__":
 
     prompt()
 
-    authFlag = False
+    authFlag = True
 
     while 1:
         if not authFlag:
@@ -81,7 +81,7 @@ if __name__ == "__main__":
                 if authResponse == commands[3] + " " + str(chatClientReference):
                     print "Goto next step"
                     print authResponse
-                    authFlag = True
+                    authFlag = False
                     break
 
                 # If FAIL
