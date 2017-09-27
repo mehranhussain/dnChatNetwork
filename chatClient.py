@@ -1,17 +1,21 @@
-# telnet program example
-import socket, select, string, sys
+# dnClient.py
+# Example Usage: python chatClient.py localhost 42015
+
+import socket
+import select
+import sys
 
 
 def prompt():
-    sys.stdout.write('<You> ')
+    sys.stdout.write('<!--YOU--!> ')
     sys.stdout.flush()
 
 
-# main function
+# Main function
 if __name__ == "__main__":
 
-    if (len(sys.argv) < 3):
-        print 'Usage : python telnet.py hostname port'
+    if len(sys.argv) < 3:
+        print 'Usage : python chatClient.py hostname port'
         sys.exit()
 
     host = sys.argv[1]
@@ -20,14 +24,14 @@ if __name__ == "__main__":
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.settimeout(2)
 
-    # connect to remote host
+    # Connect to chatServer
     try:
         s.connect((host, port))
     except:
-        print 'Unable to connect'
+        print 'Unable to connect to chatServer.'
         sys.exit()
 
-    print 'Connected to remote host. Start sending messages'
+    print 'Connected to chatServer.'
     prompt()
 
     while 1:
@@ -37,18 +41,18 @@ if __name__ == "__main__":
         read_sockets, write_sockets, error_sockets = select.select(socket_list, [], [])
 
         for sock in read_sockets:
-            # incoming message from remote server
+            # Incoming message from chatServer
             if sock == s:
                 data = sock.recv(4096)
                 if not data:
-                    print '\nDisconnected from chat server'
+                    print '\nDisconnected from chatServer'
                     sys.exit()
                 else:
-                    # print data
+                    # Print data
                     sys.stdout.write(data)
                     prompt()
 
-            # user entered a message
+            # User entered a message
             else:
                 msg = sys.stdin.readline()
                 s.send(msg)
