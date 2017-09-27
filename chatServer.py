@@ -22,6 +22,7 @@ def broadcast_data(sock, message):
         if socket != server_socket and socket != sock:
             try:
                 socket.send(message)
+                print "sent"
             except:
                 # If chatClient pressed ctrl+c for example
                 socket.close()
@@ -94,13 +95,17 @@ if __name__ == "__main__":
                             else:
                                 sock.send("FAIL "+ref_no+"\r\nPASSWORD")
 
-                        elif command == "SEND":
+                        elif command == "SEND" and cur_state == state.AUTH:
+                            print "ok in"
+                            cur_state == state.SEND
                             sock.send("OKAY "+ref_no)
                             if line2 == "*":
                                 broadcast_data(sock, "\r" + '<' + str(sock.getpeername()) + '> ' + line3)
                             else:
                                 clientRefNo[line2].send(line3)
-                        elif command == "ACKN":
+
+                        elif command == "ACKN" and cur_state == state.AUTH:
+                            sock.send("ACKN "+ref_no)
 
                     except:
                         # If chatClient pressed ctrl+c for example
