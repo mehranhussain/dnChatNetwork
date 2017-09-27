@@ -24,11 +24,13 @@ if __name__ == "__main__":
     CONNECTION_LIST = []
     RECV_BUFFER = 4096
     PORT = 42015
+    backlog =  10
 
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    server_socket.bind(("0.0.0.0", PORT))
-    server_socket.listen(10)
+    server_address = ("0.0.0.0", PORT)
+    server_socket.bind(server_address)
+    server_socket.listen(backlog)
 
     # Add server socket to the list of readable connections
     CONNECTION_LIST.append(server_socket)
@@ -44,6 +46,7 @@ if __name__ == "__main__":
             if sock == server_socket:
                 # Handle the case in which there is a new connection recieved through server_socket
                 sockfd, addr = server_socket.accept()
+
                 CONNECTION_LIST.append(sockfd)
                 print "Client (%s, %s) connected" % addr
 
@@ -56,8 +59,29 @@ if __name__ == "__main__":
                     # In Windows, sometimes when a TCP program closes abruptly,
                     # a "Connection reset by peer" exception will be thrown
                     data = sock.recv(RECV_BUFFER)
-                    if data:
-                        broadcast_data(sock, "\r" + '<' + str(sock.getpeername()) + '> ' + data)
+                    auth_str = data.split()
+                    command = auth_str[0]
+                    ref_no = auth_str[1]
+                    username = auth_str[2]
+                    password = auth_str[3]
+
+                    try:
+                        if command == "AUTH"
+                        
+                            if(password == "dnServer")
+                                sock.send("OKAY "+ref_no)
+                            else
+                                send.send("FAIL "+ref_no+"\r\nPASSWORD")
+
+                        elif command == "SEND"
+                        elif command == "ACKN"
+          
+                        if data:
+                            broadcast_data(sock, "\r" + '<' + str(sock.getpeername()) + '> ' + data)
+                    except:
+                        # If chatClient pressed ctrl+c for example
+                        sock.close()
+                        CONNECTION_LIST.remove(sock)
 
                 except:
                     broadcast_data(sock, "Client (%s, %s) is offline" % addr)
