@@ -74,10 +74,10 @@ if __name__ == "__main__":
                 if not data:
                     print '\nDisconnected from chatServer'
                     sys.exit()
-                else:
-                    # Print data
-                    sys.stdout.write(data)
-                    prompt()
+                #else:
+                  #  # Print data
+                   # sys.stdout.write(data)
+                   # prompt()
 
             # User entered a message
             else:
