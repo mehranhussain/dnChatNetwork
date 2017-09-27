@@ -31,7 +31,7 @@ if __name__ == "__main__":
 
     # Connect to chatServer
     try:
-        s.connect_ex((host, port))
+        s.connect((host, port))
     except:
         print 'Unable to connect to chatServer.'
         sys.exit()
@@ -54,6 +54,7 @@ if __name__ == "__main__":
             # Random number generated for chatClient Reference, ask for name and password
             chatClientReference = randint(1, 100)
             chatClientName = raw_input("Enter name: ")
+            prompt()
             chatClientPassword = raw_input("Enter password: ")
 
             authMessage = commands[0]
@@ -103,6 +104,7 @@ if __name__ == "__main__":
         if AUTHENTICATED == True:
             # Random number generated for chatClient Reference, ask for name and password
             chatMessageReference = randint(1, 10000)
+            prompt()
             chatMessage = raw_input("Enter message: ")
             chatMessageRcvr = raw_input("Enter * for broadcasting or Reference Number of specific client: ")
 
@@ -123,13 +125,15 @@ if __name__ == "__main__":
 
         for sock in read_sockets:
             # Incoming message from chatServer
+
             if sock == s:
                 data = sock.recv(4096)
                 authResponse = data.split()
 
                 # If OKAY
                 if data == commands[3] + " " + str(chatClientReference):
-                    print data
+                    sys.stdout.write(data)
+                    prompt()
 
                 # If FAIL
                 elif authResponse[0] == commands[4]:
@@ -139,3 +143,8 @@ if __name__ == "__main__":
                         print authResponse[0] + " " + authResponse[1] + " " + authResponse[2] + ": A malformed message or a message that is not valid in the current state of the client."
                         s.close()
                         print "Connection to chatServer closed."
+
+            else:
+                msg = sys.stdin.readline()
+                s.send(msg)
+                prompt()
