@@ -68,7 +68,7 @@ if __name__ == "__main__":
                 authResponse = data.decode('utf-8')
                 if authResponse == "OKAY "+ str(chatClientReference):
                     print "Goto next step"
-                    sys.stdout.write(authResponse)
+                    print authResponse
                 elif authResponse == "FAIL " + str(chatClientReference):
                     sys.stdout.write(authResponse)
                 if not data:
