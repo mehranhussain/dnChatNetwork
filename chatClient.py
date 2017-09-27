@@ -75,18 +75,19 @@ if __name__ == "__main__":
             # Incoming message from chatServer
             if sock == s:
                 data = sock.recv(4096)
-                authResponse = data.decode('utf-8')
+                authResponse = data.splitlines()
 
                 # If OKAY
-                if authResponse == commands[3] + " " + str(chatClientReference):
-                    print "Goto next step"
+                if authResponse[0] == commands[3] + " " + str(chatClientReference):
                     print authResponse
                     authFlag = False
                     break
 
                 # If FAIL
-                elif authResponse == commands[4] + " " + str(chatClientReference):
-                    print authResponse
+                elif authResponse[0] == commands[4] + " " + str(chatClientReference):
+                    print authResponse[0]
+                    print "\n"
+                    print authResponse[1]
                     print "  : The password is not acceptable for authentication on this server"
 
 
