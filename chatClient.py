@@ -22,6 +22,10 @@ if __name__ == "__main__":
     host = sys.argv[1]
     port = int(sys.argv[2])
 
+    # State of the connection
+    CONNECTED = False
+    AUTHENTICATED = False
+
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.settimeout(2)
 
@@ -32,30 +36,36 @@ if __name__ == "__main__":
         print 'Unable to connect to chatServer.'
         sys.exit()
 
+    CONNECTED = True
     print 'Connected to chatServer.'
 
-    #Protocol implementation
+    # Protocol implementation
 
-    commands = ['AUTH', 'SEND', 'ACKN']
-    # Random number generated for chatClient Reference, ask for name and password
-    chatClientReference = randint(1, 100)
-    chatClientName = raw_input("Enter name: ")
-    chatClientPassword = raw_input("Enter password: ")
-
-    authMessage = commands[0]
-    authMessage += " "
-    authMessage += str(chatClientReference)
-    authMessage += " \r\n"
-    authMessage += chatClientName
-    authMessage += "\r\n"
-    authMessage += chatClientPassword
-
-    s.send(authMessage)
-
+    commands = ['AUTH', 'SEND', 'ACKN', 'OKAY', 'FAIL', 'ARRV', 'LEFT', 'SRVR']
 
     prompt()
 
+    authFlag = False
+
     while 1:
+        if not authFlag:
+            break
+        if CONNECTED == True:
+            # Random number generated for chatClient Reference, ask for name and password
+            chatClientReference = randint(1, 100)
+            chatClientName = raw_input("Enter name: ")
+            chatClientPassword = raw_input("Enter password: ")
+
+            authMessage = commands[0]
+            authMessage += " "
+            authMessage += str(chatClientReference)
+            authMessage += " \r\n"
+            authMessage += chatClientName
+            authMessage += "\r\n"
+            authMessage += chatClientPassword
+
+            s.send(authMessage)
+
         socket_list = [sys.stdin, s]
 
         # Get the list sockets which are readable
@@ -66,21 +76,18 @@ if __name__ == "__main__":
             if sock == s:
                 data = sock.recv(4096)
                 authResponse = data.decode('utf-8')
-                if authResponse == "OKAY "+ str(chatClientReference):
+
+                # If OKAY
+                if authResponse == commands[3] + " " + str(chatClientReference):
                     print "Goto next step"
                     print authResponse
-                elif authResponse == "FAIL " + str(chatClientReference):
-                    sys.stdout.write(authResponse)
-                if not data:
-                    print '\nDisconnected from chatServer'
-                    sys.exit()
-                #else:
-                  #  # Print data
-                   # sys.stdout.write(data)
-                   # prompt()
+                    authFlag = True
+                    break
 
-            # User entered a message
-            else:
-                msg = sys.stdin.readline()
-                s.send(msg)
-                prompt()
+                # If FAIL
+                elif authResponse == commands[4] + " " + str(chatClientReference):
+                    print authResponse
+                    print "  : The password is not acceptable for authentication on this server"
+
+
+
