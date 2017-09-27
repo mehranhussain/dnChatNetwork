@@ -5,7 +5,7 @@ import sys, socket, select
 HOST = '' 
 SOCKET_LIST = []
 RECV_BUFFER = 4096 
-PORT = 42015
+PORT = 420152
 
 def chat_server():
 
@@ -29,6 +29,7 @@ def chat_server():
             # a new connection request recieved
             if sock == server_socket: 
                 sockfd, addr = server_socket.accept()
+                
                 SOCKET_LIST.append(sockfd)
                 print "Client (%s, %s) connected" % addr
                  
