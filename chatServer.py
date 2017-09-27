@@ -39,7 +39,7 @@ if __name__ == "__main__":
 
     clientRefNo = {}
 
-    while 1:
+    while True:
         # Get the list sockets which are ready to be read through select
         read_sockets, write_sockets, error_sockets = select.select(CONNECTION_LIST, [], [])
 
@@ -68,7 +68,7 @@ if __name__ == "__main__":
                     line3 = auth_str[3]
 
                     if clientRefNo[ref_no]:
-                        sock.send("FAIL "+ref_no+"\r\NUMBER")
+                        sock.send("FAIL "+ref_no+"\r\nNUMBER")
                     else:
                         clientRefNo[ref_no] = sock
 
@@ -77,6 +77,7 @@ if __name__ == "__main__":
                         
                             if line3 == "dnServer":
                                 sock.send("OKAY "+ref_no)
+                                
                             else:
                                 sock.send("FAIL "+ref_no+"\r\nPASSWORD")
 
@@ -86,7 +87,7 @@ if __name__ == "__main__":
                                 broadcast_data(sock, "\r" + '<' + str(sock.getpeername()) + '> ' + line3)
                             else:
                                 clientRefNo[line2].send(line3)
-                        #elif command == "ACKN":
+                        elif command == "ACKN":
                     except:
                         # If chatClient pressed ctrl+c for example
                         sock.close()
