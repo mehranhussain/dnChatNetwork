@@ -103,24 +103,6 @@ if __name__ == "__main__":
     while 1:
         socket_list = [sys.stdin, s]
 
-        if AUTHENTICATED == True:
-            # Random number generated for chatClient Reference, ask for name and password
-            chatMessageReference = randint(1, 10000)
-            chatMessage = sys.stdin.readline()
-            chatMessageRcvr = raw_input("Enter * for broadcasting or Reference Number of specific client: ")
-
-            chatMessage = commands[1]
-            chatMessage += " "
-            chatMessage += str(chatMessageReference)
-            chatMessage += " \r\n"
-            chatMessage += chatMessageRcvr
-            chatMessage += "\r\n"
-            chatMessage += chatMessage
-
-            s.send(chatMessage)
-
-
-
         # Get the list sockets which are readable
         read_sockets, write_sockets, error_sockets = select.select(socket_list, [], [])
 
@@ -146,5 +128,20 @@ if __name__ == "__main__":
                         print "Connection to chatServer closed."
 
             else:
+                if AUTHENTICATED == True:
+                    # Random number generated for chatClient Reference, ask for name and password
+                    chatMessageReference = randint(1, 10000)
+                    prompt()
+                    chatMessage = sys.stdin.readline()
+                    chatMessageRcvr = raw_input("Enter * for broadcasting or Reference Number of specific client: ")
+
+                    chatMessage = commands[1]
+                    chatMessage += " "
+                    chatMessage += str(chatMessageReference)
+                    chatMessage += " \r\n"
+                    chatMessage += chatMessageRcvr
+                    chatMessage += "\r\n"
+                    chatMessage += chatMessage
+
                 s.send(chatMessage)
                 prompt()
