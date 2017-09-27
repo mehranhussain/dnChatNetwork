@@ -101,11 +101,12 @@ if __name__ == "__main__":
                         print "Connection to chatServer closed."
 
     while 1:
+        socket_list = [sys.stdin, s]
+
         if AUTHENTICATED == True:
             # Random number generated for chatClient Reference, ask for name and password
             chatMessageReference = randint(1, 10000)
-            prompt()
-            chatMessage = raw_input("Enter message: ")
+            chatMessage = sys.stdin.readline()
             chatMessageRcvr = raw_input("Enter * for broadcasting or Reference Number of specific client: ")
 
             chatMessage = commands[1]
@@ -118,7 +119,7 @@ if __name__ == "__main__":
 
             s.send(chatMessage)
 
-        socket_list = [sys.stdin, s]
+
 
         # Get the list sockets which are readable
         read_sockets, write_sockets, error_sockets = select.select(socket_list, [], [])
@@ -145,6 +146,5 @@ if __name__ == "__main__":
                         print "Connection to chatServer closed."
 
             else:
-                msg = sys.stdin.readline()
-                s.send(msg)
+                s.send(chatMessage)
                 prompt()
