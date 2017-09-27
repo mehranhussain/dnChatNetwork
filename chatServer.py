@@ -69,8 +69,6 @@ if __name__ == "__main__":
 
                     clientRefNo[ref_no] = sock
 
-                    print data
-
                     try:
                         if command == "AUTH":
                         
