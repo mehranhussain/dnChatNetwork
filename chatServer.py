@@ -3,6 +3,16 @@
 
 import socket
 import select
+from enum import Enum
+
+
+class state(Enum):
+    CONN = 0
+    AUTH = 1
+    SEND = 2
+    ACKN = 3
+    ARRV = 4
+    LEFT = 5
 
 
 # Function to broadcast chat messages to all connected clients
@@ -38,6 +48,7 @@ if __name__ == "__main__":
     print "chatServer started on port " + str(PORT)
 
     clientRefNo = {}
+    cur_state = -1
 
     while True:
         # Get the list sockets which are ready to be read through select
@@ -50,6 +61,7 @@ if __name__ == "__main__":
                 sockfd, addr = server_socket.accept()
 
                 CONNECTION_LIST.append(sockfd)
+                cur_state = state.CONN
                 print "Client (%s, %s) connected" % addr
 
                 broadcast_data(sockfd, "[%s:%s] entered room\n" % addr)
@@ -66,18 +78,19 @@ if __name__ == "__main__":
                     ref_no = auth_str[1]
                     line2 = auth_str[2]
                     line3 = auth_str[3]
-
-                    # if clientRefNo[ref_no]:
-                    #     sock.send("FAIL "+ref_no+"\r\nNUMBER")
-                    # else:
-                    #     clientRefNo[ref_no] = sock
+                    
+                    if clientRefNo:
+                        if clientRefNo[ref_no]:
+                            sock.send("FAIL "+ref_no+"\r\nNUMBER")
+                        else:
+                            clientRefNo[ref_no] = sock
 
                     try:
                         if command == "AUTH":
                         
                             if line3 == "dnServer":
+                                cur_state = state.AUTH
                                 sock.send("OKAY "+ref_no)
-
                             else:
                                 sock.send("FAIL "+ref_no+"\r\nPASSWORD")
 
@@ -87,7 +100,8 @@ if __name__ == "__main__":
                                 broadcast_data(sock, "\r" + '<' + str(sock.getpeername()) + '> ' + line3)
                             else:
                                 clientRefNo[line2].send(line3)
-                        #elif command == "ACKN":
+                        elif command == "ACKN":
+
                     except:
                         # If chatClient pressed ctrl+c for example
                         sock.close()
