@@ -67,17 +67,17 @@ if __name__ == "__main__":
                     line2 = auth_str[2]
                     line3 = auth_str[3]
 
-                    if clientRefNo[ref_no]:
-                        sock.send("FAIL "+ref_no+"\r\nNUMBER")
-                    else:
-                        clientRefNo[ref_no] = sock
+                    # if clientRefNo[ref_no]:
+                    #     sock.send("FAIL "+ref_no+"\r\nNUMBER")
+                    # else:
+                    #     clientRefNo[ref_no] = sock
 
                     try:
                         if command == "AUTH":
                         
                             if line3 == "dnServer":
                                 sock.send("OKAY "+ref_no)
-                                
+
                             else:
                                 sock.send("FAIL "+ref_no+"\r\nPASSWORD")
 
@@ -87,7 +87,7 @@ if __name__ == "__main__":
                                 broadcast_data(sock, "\r" + '<' + str(sock.getpeername()) + '> ' + line3)
                             else:
                                 clientRefNo[line2].send(line3)
-                        elif command == "ACKN":
+                        #elif command == "ACKN":
                     except:
                         # If chatClient pressed ctrl+c for example
                         sock.close()
