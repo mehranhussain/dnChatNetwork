@@ -44,7 +44,7 @@ if __name__ == "__main__":
 
     authMessage = commands[0]
     authMessage += " "
-    authMessage += chatClientReference
+    authMessage += str(chatClientReference)
     authMessage += " \r\n"
     authMessage += chatClientName
     authMessage += "\r\n"
