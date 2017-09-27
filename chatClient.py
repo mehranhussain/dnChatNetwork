@@ -51,13 +51,7 @@ if __name__ == "__main__":
     authMessage += chatClientPassword
 
     s.send(authMessage)
-    authResponse = s.recv(4096)
-    authResponseString = authResponse.decode('utf-8')
-    if authResponseString == "OKAY":
-        print "Goto next step"
-        sys.stdout.write(authResponse)
-    elif authResponseString == "FAIL":
-        sys.stdout.write(authResponse)
+
 
     prompt()
 
@@ -71,6 +65,12 @@ if __name__ == "__main__":
             # Incoming message from chatServer
             if sock == s:
                 data = sock.recv(4096)
+                authResponse = data.decode('utf-8')
+                if authResponse == "OKAY "+ str(chatClientReference):
+                    print "Goto next step"
+                    sys.stdout.write(authResponse)
+                elif authResponse == "FAIL " + str(chatClientReference):
+                    sys.stdout.write(authResponse)
                 if not data:
                     print '\nDisconnected from chatServer'
                     sys.exit()
