@@ -66,15 +66,15 @@ if __name__ == "__main__":
                     password = auth_str[3]
 
                     try:
-                        if command == "AUTH"
+                        if command == "AUTH":
                         
-                            if(password == "dnServer")
+                            if password == "dnServer":
                                 sock.send("OKAY "+ref_no)
-                            else
-                                send.send("FAIL "+ref_no+"\r\nPASSWORD")
+                            else:
+                                sock.send("FAIL "+ref_no+"\r\nPASSWORD")
 
-                        elif command == "SEND"
-                        elif command == "ACKN"
+                        #elif command == "SEND":
+                        #elif command == "ACKN":
           
                         if data:
                             broadcast_data(sock, "\r" + '<' + str(sock.getpeername()) + '> ' + data)
