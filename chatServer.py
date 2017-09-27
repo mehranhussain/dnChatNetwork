@@ -65,11 +65,14 @@ if __name__ == "__main__":
                     username = auth_str[2]
                     password = auth_str[3]
 
+                    print data
+
                     try:
                         if command == "AUTH":
                         
                             if password == "dnServer":
                                 sock.send("OKAY "+ref_no)
+                                print "sent"
                             else:
                                 sock.send("FAIL "+ref_no+"\r\nPASSWORD")
 
