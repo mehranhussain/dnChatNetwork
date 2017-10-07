@@ -49,6 +49,7 @@ if __name__ == "__main__":
     print "chatServer started on port " + str(PORT)
 
     clientRefNo = {}
+    clientSocket = {}
     cur_state = -1
 
     while True:
@@ -74,39 +75,46 @@ if __name__ == "__main__":
                     # In Windows, sometimes when a TCP program closes abruptly,
                     # a "Connection reset by peer" exception will be thrown
                     data = sock.recv(RECV_BUFFER)
-                    auth_str = data.split()
-                    command = auth_str[0]
-                    ref_no = auth_str[1]
-                    line2 = auth_str[2]
-                    line3 = auth_str[3]
+
+                    # command = com_str[0]
+                    # ref_no = com_str[1]
+                    # line2 = com_str[2]
+                    # line3 = com_str[3]
+
+                    com_str =[]
+                    for cmd in data.split():
+                         com_str.append(cmd)
 
                     try:
-                        if command == "AUTH":
+                        if com_str[0] == "AUTH":
 
-                            # if clientRefNo[ref_no]:
-                            #     sock.send("FAIL "+ref_no+"\r\nNUMBER")
+                            # if clientRefNo[com_str[1]]:
+                            #     sock.send("FAIL "+com_str[1]+"\r\nNUMBER")
                             # else:
-                            clientRefNo[ref_no] = sock
+                            clientRefNo[com_str[1]] = sock
+                            clientSocket[sock] = com_str[1]
+
                         
-                            if line3 == "dnServer":
+                            if com_str[3] == "dnServer":
                                 cur_state = state.AUTH
-                                sock.send("OKAY "+ref_no)
+                                sock.send("OKAY "+com_str[1])
                             else:
-                                sock.send("FAIL "+ref_no+"\r\nPASSWORD")
+                                sock.send("FAIL "+com_str[1]+"\r\nPASSWORD")
 
-                        elif command == "SEND" and cur_state == state.AUTH:
+                        elif com_str[0] == "SEND" and cur_state == state.AUTH:
                             cur_state == state.SEND
-                            sock.send("OKAY "+ref_no)
+                            sock.send("OKAY "+com_str[1])
 
-                            if line2 == "*":
-                                print line3
-                                broadcast_data(sock, "\r" + '<' + str(sock.getpeername()) + '> ' + line3)
+                            if com_str[2] == "*":
+                                print com_str[3]
+                                broadcast_data(sock, "\r" + '<' + str(sock.getpeername()) + '> ' + com_str[3])
 
                             else:
-                                clientRefNo[line2].send(line3)
+                                clientRefNo[com_str[2]].send("SEND " + com_str[1] + "\r\n" + clientSocket[sock] + "\r\n" + com_str[3])
 
-                        elif command == "ACKN" and cur_state == state.AUTH:
-                            sock.send("ACKN "+ref_no)
+                        elif com_str[0] == "ACKN" and cur_state == state.AUTH:
+                            clientRefNo[com_str[2]].send("ACKN "+ com_str[1])
+                            #broadcast_data(sock, "\r" + '<' + str(sock.getpeername()) + '> ' + com_str[3])
 
                     except:
                         # If chatClient pressed ctrl+c for example
