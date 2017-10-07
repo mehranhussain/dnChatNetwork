@@ -110,7 +110,10 @@ if __name__ == "__main__":
                                 broadcast_data(sock, "\r" + '<' + str(sock.getpeername()) + '> ' + com_str[3])
 
                             else:
-                                clientRefNo[com_str[2]].send("SEND " + com_str[1] + "\r\n" + clientSocket[sock] + "\r\n" + com_str[3])
+                                msg = ""
+                                for m in com_str[3:]:
+                                    msg += " "+m
+                                clientRefNo[com_str[2]].send("SEND " + com_str[1] + "\r\n" + clientSocket[sock] + "\r\n" + msg)
 
                         elif com_str[0] == "ACKN" and cur_state == state.AUTH:
                             clientRefNo[com_str[2]].send("ACKN "+ com_str[1])

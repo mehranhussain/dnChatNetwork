@@ -106,7 +106,6 @@ if __name__ == "__main__":
 
             if sock == s:
                 data = sock.recv(4096)
-                print data
                 authResponse = data.split()
 
                 # If OKAY
@@ -116,7 +115,7 @@ if __name__ == "__main__":
 
                 # If SEND
                 elif authResponse[0] == commands[1]:
-                    sys.stdout.write(data)
+                    print data
                     s.send("ACKN " + authResponse[1]  + "\r\n" + authResponse[2])
                     prompt()
 
@@ -138,6 +137,8 @@ if __name__ == "__main__":
                         print authResponse[0] + " " + authResponse[1] + " " + authResponse[2] + ": A malformed message or a message that is not valid in the current state of the client."
                         s.close()
                         print "Connection to chatServer closed."
+                else:
+                    print data
 
             else:
                 if AUTHENTICATED == True:
