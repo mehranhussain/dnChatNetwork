@@ -77,6 +77,7 @@ if __name__ == "__main__":
             if sock == s:
                 data = sock.recv(4096)
                 authResponse = data.split()
+                print authResponse
 
                 # If OKAY
                 if data == commands[3] + " " + str(chatClientReference):
@@ -122,7 +123,7 @@ if __name__ == "__main__":
                 # If ARRV
                 elif authResponse[0] == commands[6]:
                     print "The following user is connected now.\r\nUser Reference: " + authResponse[1] + "\r\nUsername: " + authResponse[2] + "\r\nIpAddress: " + authResponse[3]
-                    prompt()
+                    #prompt()
 
                 # If LEFT
                 elif authResponse[0] == commands[7]:

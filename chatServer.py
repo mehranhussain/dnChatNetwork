@@ -33,6 +33,7 @@ if __name__ == "__main__":
 
     # List to keep track of socket descriptors
     CONNECTION_LIST = []
+    AUTH_LIST = []
     RECV_BUFFER = 4096
     PORT = 42015
     backlog =  10
@@ -50,6 +51,9 @@ if __name__ == "__main__":
 
     clientRefNo = {}
     clientSocket = {}
+    userName = {}
+    userPassword = {}
+    userDescription = {}
     cur_state = -1
 
     while True:
@@ -61,6 +65,7 @@ if __name__ == "__main__":
             if sock == server_socket:
                 # Handle the case in which there is a new connection recieved through server_socket
                 sockfd, addr = server_socket.accept()
+                userDescription[sockfd] = addr
 
                 CONNECTION_LIST.append(sockfd)
                 cur_state = state.CONN
@@ -93,11 +98,16 @@ if __name__ == "__main__":
                             # else:
                             clientRefNo[com_str[1]] = sock
                             clientSocket[sock] = com_str[1]
+                            userName[sock] = com_str[2]
+                            userPassword[sock] = com_str[3]
 
-                        
                             if com_str[3] == "dnServer":
                                 cur_state = state.AUTH
+                                AUTH_LIST.append(sock)
                                 sock.send("OKAY "+com_str[1])
+                                for socket in AUTH_LIST:
+                                    if socket != sock:
+                                        socket.send("ARRV " + clientSocket[sock] + "\r\n" + userName[sock] + "\r\n" + "descriptors")
                             else:
                                 sock.send("FAIL "+com_str[1]+"\r\nPASSWORD")
 
