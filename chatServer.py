@@ -79,7 +79,6 @@ if __name__ == "__main__":
                     ref_no = auth_str[1]
                     line2 = auth_str[2]
                     line3 = auth_str[3]
-                    
 
                     try:
                         if command == "AUTH":
