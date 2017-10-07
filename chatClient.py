@@ -7,11 +7,6 @@ import sys
 from random import randint
 
 
-def prompt():
-    sys.stdout.write('<!--YOU--!> ')
-    sys.stdout.flush()
-
-
 # Main function
 if __name__ == "__main__":
 
@@ -43,8 +38,6 @@ if __name__ == "__main__":
 
     commands = ['AUTH', 'SEND', 'ACKN', 'OKAY', 'FAIL', 'INVD', 'ARRV', 'LEFT', 'SRVR']
 
-    prompt()
-
     authFlag = True
 
     while 1:
@@ -54,7 +47,6 @@ if __name__ == "__main__":
             # Random number generated for chatClient Reference, ask for name and password
             chatClientReference = randint(1, 100)
             chatClientName = raw_input("Enter name: ")
-            prompt()
             chatClientPassword = raw_input("Enter password: ")
 
             authMessage = commands[0]
@@ -112,23 +104,19 @@ if __name__ == "__main__":
                 # If OKAY
                 if data == commands[3] + " " + str(chatMessageReference):
                     sys.stdout.write(data)
-                    prompt()
 
                 # If SEND
                 elif authResponse[0] == commands[1]:
                     print data
                     s.send("ACKN " + authResponse[1]  + "\r\n" + authResponse[2])
-                    prompt()
 
                 # If ARRV
                 elif authResponse[0] == commands[6]:
                     print "The following user is connected now.\r\nUser Reference: " + authResponse[1] + "\r\nUsername: " + authResponse[2] + "\r\nIpAddress: " + authResponse[3]
-                    #prompt()
 
                 # If LEFT
                 elif authResponse[0] == commands[7]:
                     print "The following user has left.\r\nUser Reference: " + authResponse[1]
-                    prompt()
 
                 # If FAIL
                 elif authResponse[0] == commands[4]:
@@ -145,7 +133,6 @@ if __name__ == "__main__":
                 if AUTHENTICATED == True:
                     # Random number generated for chatClient Reference, ask for name and password
                     
-                    prompt()
                     chatMessagejk = sys.stdin.readline()
                     chatMessageRcvr = raw_input("Enter * for broadcasting or Reference Number of specific client: ")
 
@@ -158,4 +145,3 @@ if __name__ == "__main__":
                     chatMessage += chatMessagejk
 
                 s.send(chatMessage)
-                prompt()
