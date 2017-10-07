@@ -80,6 +80,11 @@ if __name__ == "__main__":
                     # In Windows, sometimes when a TCP program closes abruptly,
                     # a "Connection reset by peer" exception will be thrown
                     data = sock.recv(RECV_BUFFER)
+                    if data == "CLOSED":
+                        AUTH_LIST.remove(sock)
+                        for socket in AUTH_LIST:
+                            socket.send("LEFT " + clientSocket[sock])
+
 
                     # command = com_str[0]
                     # ref_no = com_str[1]
@@ -89,6 +94,7 @@ if __name__ == "__main__":
                     com_str =[]
                     for cmd in data.split():
                          com_str.append(cmd)
+
 
                     try:
                         if com_str[0] == "AUTH":
@@ -107,7 +113,7 @@ if __name__ == "__main__":
                                 sock.send("OKAY "+com_str[1])
                                 for socket in AUTH_LIST:
                                     if socket != sock:
-                                        socket.send("ARRV " + clientSocket[sock] + "\r\n" + userName[sock] + "\r\n" + "descriptors")
+                                        socket.send("ARRV " + clientSocket[sock] + "\r\n" + userName[sock] + "\r\n" + "disconnected")
                             else:
                                 sock.send("FAIL "+com_str[1]+"\r\nPASSWORD")
 

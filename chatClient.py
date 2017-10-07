@@ -6,9 +6,10 @@ import select
 import sys
 from random import randint
 
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 # Main function
-if __name__ == "__main__":
+def main():
 
     if len(sys.argv) < 3:
         print 'Usage : python chatClient.py hostname port'
@@ -21,7 +22,7 @@ if __name__ == "__main__":
     CONNECTED = False
     AUTHENTICATED = False
 
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+  
     s.settimeout(2)
 
     # Connect to chatServer
@@ -145,3 +146,12 @@ if __name__ == "__main__":
                     chatMessage += chatMessagejk
 
                 s.send(chatMessage)
+
+if __name__ == "__main__":
+    try:
+        main()
+    except KeyboardInterrupt:
+        s.send("CLOSED")
+        s.close()
+
+
