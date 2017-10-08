@@ -4,6 +4,18 @@
 import socket
 import select
 from enum import Enum
+import sys
+import fcntl
+import struct
+
+def get_ip_address(ifname):
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    return socket.inet_ntoa(fcntl.ioctl(
+        s.fileno(),
+        0x8915,  # SIOCGIFADDR
+        struct.pack('256s', ifname[:15])
+    )[20:24])
+
 
 
 class state(Enum):
@@ -37,12 +49,14 @@ if __name__ == "__main__":
     RECV_BUFFER = 4096
     PORT = 42015
     backlog =  10
+    HOST =  get_ip_address('wlp2s0') #"10.9.24.36"
 
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    server_address = ("0.0.0.0", PORT)
+    server_address = (HOST, PORT)
     server_socket.bind(server_address)
     server_socket.listen(backlog)
+
 
     # Add server socket to the list of readable connections
     CONNECTION_LIST.append(server_socket)
@@ -57,6 +71,8 @@ if __name__ == "__main__":
     cur_state = -1
 
     while True:
+        CONNECTION_LIST.append(sys.stdin)
+
         # Get the list sockets which are ready to be read through select
         read_sockets, write_sockets, error_sockets = select.select(CONNECTION_LIST, [], [])
 
@@ -74,6 +90,15 @@ if __name__ == "__main__":
                 #broadcast_data(sockfd, "[%s:%s] entered room\n" % addr)
 
             # Some incoming message from a client
+            elif sock == sys.stdin:
+                command = sys.stdin.readline().split()
+                srv_in = []
+                for m in command:
+                    srv_in.append(m)
+                    
+                print srv_in
+
+
             else:
                 # Data recieved from client, process it
                 try:

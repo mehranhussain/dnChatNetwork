@@ -90,7 +90,6 @@ def main():
 
     while 1:
         socket_list = [sys.stdin, s]
-
         # Get the list sockets which are readable
         read_sockets, write_sockets, error_sockets = select.select(socket_list, [], [])
         chatMessageReference = randint(1, 10000)
@@ -133,7 +132,7 @@ def main():
             else:
                 if AUTHENTICATED == True:
                     # Random number generated for chatClient Reference, ask for name and password
-                    
+                    print "input something"
                     chatMessagejk = sys.stdin.readline()
                     chatMessageRcvr = raw_input("Enter * for broadcasting or Reference Number of specific client: ")
 
