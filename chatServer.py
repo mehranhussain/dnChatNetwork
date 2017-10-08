@@ -7,6 +7,7 @@ from enum import Enum
 import sys
 import fcntl
 import struct
+from random import randint
 
 def get_ip_address(ifname):
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -91,13 +92,26 @@ if __name__ == "__main__":
 
             # Some incoming message from a client
             elif sock == sys.stdin:
-                command = sys.stdin.readline().split()
-                srv_in = []
-                for m in command:
-                    srv_in.append(m)
-                    
-                print srv_in
 
+                srv_in = sys.stdin.readline().split()
+                if srv_in[0] == "connect":
+                    srv_in_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    srv_in_socket.settimeout(2)
+                    # Connect to chatServer
+                    try:
+                        srv_in_socket.connect((srv_in[1], srv_in[2]))
+                    except:
+                        print 'Unable to connect to chatServer.'
+                        sys.exit()
+
+                    # Random number generated for chatClient Reference, ask for name and password
+                    serverReferenceNumber = randint(1, 100)
+                    srv_in_socket.send("SRVR " + str(serverReferenceNumber))
+
+                    print srv_in
+
+                else:
+                    print "Enter the correct command e.g. connect 133.0.9.3 42015"
 
             else:
                 # Data recieved from client, process it
@@ -159,6 +173,30 @@ if __name__ == "__main__":
                         elif com_str[0] == "ACKN" and cur_state == state.AUTH:
                             clientRefNo[com_str[2]].send("ACKN "+ com_str[1])
                             #broadcast_data(sock, "\r" + '<' + str(sock.getpeername()) + '> ' + com_str[3])
+
+                        elif com_str[0] == "SRVR":
+                            print "The communication is from server"
+
+                        elif com_str[0] == "ARRV":
+                            uReferenceNumber = com_str[1]
+                            uName = com_str[2]
+                            uDescription = com_str[3]
+                            hops = com_str[4]
+
+                            if hops > 15:
+                                print "The user has left"
+
+                        elif com_str[0] == "LEFT":
+                            print "The following user is not reachable" + com_str[1]
+
+                        elif com_str[0] == "SEND":
+                            print "SEND"
+
+                        elif com_str[0] == "ACKN":
+                            print "ACKN"
+
+                        elif com_str[0] == "INVD" and com_str[1] == 0:
+                            print "close connection"
 
                     except:
                         # If chatClient pressed ctrl+c for example
