@@ -95,8 +95,12 @@ if __name__ == "__main__":
                 srv_in = []
                 for m in command:
                     srv_in.append(m)
-                    
-                print srv_in
+
+                print srv_in[]
+                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                s.connect((host, port))
+
+                s.send("SRVR")
 
 
             else:
