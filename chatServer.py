@@ -7,6 +7,8 @@ from enum import Enum
 import sys
 import fcntl
 import struct
+from random import randint
+from collections import defaultdict
 
 def get_ip_address(ifname):
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -30,15 +32,16 @@ class state(Enum):
 # Function to broadcast chat messages to all connected clients
 def broadcast_data(sock, message):
     # Do not send the message to the client who has send us the message
-    for socket in CONNECTION_LIST:
-        if socket != server_socket and socket != sock:
+    for sck in CONNECTION_LIST:
+        print "in loop"
+        if sck != server_socket and sck != sock:
             try:
-                socket.send(message)
+                sck.send(message)
                 print "sent"
             except:
                 # If chatClient pressed ctrl+c for example
-                socket.close()
-                CONNECTION_LIST.remove(socket)
+                sck.close()
+                CONNECTION_LIST.remove(sck)
 
 
 if __name__ == "__main__":
@@ -46,10 +49,11 @@ if __name__ == "__main__":
     # List to keep track of socket descriptors
     CONNECTION_LIST = []
     AUTH_LIST = []
+    SRVR_LIST = []
     RECV_BUFFER = 4096
     PORT = 42015
     backlog =  10
-    HOST =  get_ip_address('wlp2s0') #"10.9.24.36"
+    HOST =  ""#get_ip_address('wlp2s0') #"10.9.24.36"
 
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -65,14 +69,17 @@ if __name__ == "__main__":
 
     clientRefNo = {}
     clientSocket = {}
+    serverRefNo = {}
+    serverSocket = {}
     userName = {}
     userPassword = {}
     userDescription = {}
     cur_state = -1
 
-    while True:
-        CONNECTION_LIST.append(sys.stdin)
+    CONNECTION_LIST.append(sys.stdin)
 
+    while True:
+        
         # Get the list sockets which are ready to be read through select
         read_sockets, write_sockets, error_sockets = select.select(CONNECTION_LIST, [], [])
 
@@ -91,17 +98,36 @@ if __name__ == "__main__":
 
             # Some incoming message from a client
             elif sock == sys.stdin:
-                command = sys.stdin.readline().split()
-                srv_in = []
-                for m in command:
-                    srv_in.append(m)
 
-                print srv_in[]
-                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                s.connect((host, port))
+                srv_in = sys.stdin.readline().split()
+                if srv_in[0] == "connect":
+                    srv_in_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    # Connect to chatServer
+                    try:
+                        srv_in_socket.connect((srv_in[1], int(srv_in[2])))
+                    except socket.error as msg:
+                        print "Socket Error: %s" % msg
 
-                s.send("SRVR")
 
+                    # Random number generated for chatClient Reference, ask for name and password
+                    rfn = randint(1, 10000)
+                    ok = False
+                    while not ok:
+                        try:
+                            while serverRefNo[rfn]:
+                                rfn = randint(1, 10000)
+                        except KeyError:
+                            ok = True
+
+                    serverRefNo[rfn] =  srv_in_socket
+                    SRVR_LIST.append(srv_in_socket)
+                    serverSocket[srv_in_socket] = True
+                    CONNECTION_LIST.append(srv_in_socket)
+ 
+                    srv_in_socket.send("SRVR " + str(rfn))
+
+                else:
+                    print "Enter the correct command e.g. connect 133.0.9.3 42015"
 
             else:
                 # Data recieved from client, process it
@@ -111,8 +137,8 @@ if __name__ == "__main__":
                     data = sock.recv(RECV_BUFFER)
                     if data == "CLOSED":
                         AUTH_LIST.remove(sock)
-                        for socket in AUTH_LIST:
-                            socket.send("LEFT " + clientSocket[sock])
+                        for sck in AUTH_LIST:
+                            sck.send("LEFT " + clientSocket[sock])
 
 
                     # command = com_str[0]
@@ -123,7 +149,11 @@ if __name__ == "__main__":
                     com_str =[]
                     for cmd in data.split():
                          com_str.append(cmd)
-
+                    try:
+                        if serverSocket[sock]:
+                            this_is_server = True
+                    except:
+                        this_is_server = False
 
                     try:
                         if com_str[0] == "AUTH":
@@ -140,29 +170,90 @@ if __name__ == "__main__":
                                 cur_state = state.AUTH
                                 AUTH_LIST.append(sock)
                                 sock.send("OKAY "+com_str[1])
-                                for socket in AUTH_LIST:
-                                    if socket != sock:
-                                        socket.send("ARRV " + clientSocket[sock] + "\r\n" + userName[sock] + "\r\n" + "disconnected")
+                                for sck in AUTH_LIST:
+                                    if sck != sock:
+                                        sck.send("ARRV " + clientSocket[sock] + "\r\n" + userName[sock] + "\r\n" + "disconnected")
+                                
+                                for srvr in SRVR_LIST:
+                                    srvr.send("ARRV " + clientSocket[sock] + "\r\n" + userName[sock] + "\r\n" + "disconnected" + "\r\n" + "1")
+
                             else:
                                 sock.send("FAIL "+com_str[1]+"\r\nPASSWORD")
 
-                        elif com_str[0] == "SEND" and cur_state == state.AUTH:
+                        elif com_str[0] == "SEND" and cur_state == state.AUTH and not this_is_server:
+
                             cur_state == state.SEND
                             sock.send("OKAY "+com_str[1])
 
                             if com_str[2] == "*":
-                                print com_str[3]
-                                broadcast_data(sock, "\r" + '<' + str(sock.getpeername()) + '> ' + com_str[3])
+                                msg = ""
+                                for m in com_str[3:]:
+                                    msg += " "+m
 
+                                #Broadcast to clients
+                                for sck in AUTH_LIST:
+                                    if sck != sock:
+                                        sck.send("SEND "+ com_str[1] + "\r\n" + com_str[2] + "\r\n" + msg)
+                                
+                                #Broadcast to servers
+                                for srvr in SRVR_LIST:
+                                    srvr.send("SEND "+ com_str[1] + "\r\n" + com_str[2] + "\r\n" + clientSocket[sock] + "\r\n" + msg)
+
+                                #broadcast_data(sock, "SEND "+ com_str[1] + "\r\n" + com_str[2] + "\r\n" + clientSocket[sock] + "\r\n" + msg)
                             else:
                                 msg = ""
                                 for m in com_str[3:]:
                                     msg += " "+m
                                 clientRefNo[com_str[2]].send("SEND " + com_str[1] + "\r\n" + clientSocket[sock] + "\r\n" + msg)
 
-                        elif com_str[0] == "ACKN" and cur_state == state.AUTH:
+                        elif com_str[0] == "ACKN" and cur_state == state.AUTH :
                             clientRefNo[com_str[2]].send("ACKN "+ com_str[1])
                             #broadcast_data(sock, "\r" + '<' + str(sock.getpeername()) + '> ' + com_str[3])
+
+                        elif com_str[0] == "SRVR":
+                            serverSocket[CONNECTION_LIST[-1]] = com_str[1]
+                            SRVR_LIST.append(CONNECTION_LIST[-1])
+                            print "The communication is from server"
+
+                        elif com_str[0] == "ARRV":
+                            uReferenceNumber = com_str[1]
+                            uName = com_str[2]
+                            uDescription = com_str[3]
+                            uhops = com_str[4]
+
+                            print "arrived"
+                            if int(uhops) > 15:
+                                for clnt in AUTH_LIST:
+                                    clnt.send("LEFT " + uReferenceNumber)
+                                for srvr in SRVR_LIST:
+                                    srvr.send("LEFT " + uReferenceNumber)
+                            else:
+                                print "arv sent"
+                                for sck in AUTH_LIST:
+                                    sck.send("ARRV " + uReferenceNumber + "\r\n" + uName + "\r\n" + uDescription)
+                                for srvr in SRVR_LIST:
+                                    if srvr != sock:
+                                        srvr.send("ARRV " + uReferenceNumber + "\r\n" + uName + "\r\n" + uDescription + "\r\n" + str(int(uhops)+1))
+
+                        elif com_str[0] == "LEFT":
+                            print "The following user is not reachable" + com_str[1]
+
+                        elif com_str[0] == "SEND" and this_is_server:
+                         #Broadcast to clients
+                            for sck in AUTH_LIST:
+                                sck.send("SEND "+ com_str[1] + "\r\n" + com_str[2] + "\r\n" + msg)
+                            
+                         #    #Broadcast to servers
+                         #    for srvr in SRVR_LIST:
+                         #        srvr.send("SEND "+ com_str[1] + "\r\n" + com_str[2] + "\r\n" + clientSocket[sock] + "\r\n" + msg)
+
+                            print "SEND"
+
+                        elif com_str[0] == "ACKN":
+                            print "ACKN"
+
+                        elif com_str[0] == "INVD" and com_str[1] == 0:
+                            print "close connection"
 
                     except:
                         # If chatClient pressed ctrl+c for example
