@@ -156,41 +156,68 @@ if __name__ == "__main__":
                         this_is_server = False
                     print this_is_server
 
+                    failure = False
+
                     try:
                         if com_str[0] == "AUTH":
+                            try:
+                                if clientRefNo[com_str[1]]:
+                                    print "in cl ref"
+                                    sock.send("FAIL "+com_str[1]+"\r\nNUMBER")
+                            except:
 
-                            # if clientRefNo[com_str[1]]:
-                            #     sock.send("FAIL "+com_str[1]+"\r\nNUMBER")
-                            # else:
-                            clientRefNo[com_str[1]] = sock
-                            clientSocket[sock] = com_str[1]
-                            userName[sock] = com_str[2]
-                            userPassword[sock] = com_str[3]
-
-                            if com_str[3] == "dnServer":
-                                cur_state = state.AUTH
-                                AUTH_LIST.append(sock)
-                                sock.send("OKAY "+com_str[1])
-                                for sck in AUTH_LIST:
-                                    if sck != sock:
-                                        sck.send("ARRV " + clientSocket[sock] + "\r\n" + userName[sock] + "\r\n" + "disconnected")
                                 
-                                for srvr in SRVR_LIST:
-                                    srvr.send("ARRV " + clientSocket[sock] + "\r\n" + userName[sock] + "\r\n" + "disconnected" + "\r\n" + "1")
+                                for s, name in userName.iteritems():
+                                    if name == com_str[2]:
+                                        sock.send("FAIL "+com_str[2]+"\r\nNAME")
+                                        failure = True
+                                        break
 
-                            else:
-                                sock.send("FAIL "+com_str[1]+"\r\nPASSWORD")
+                                if not com_str[3].isalnum():
+                                    sock.send("FAIL "+com_str[1]+"\r\nPASSWORD")
+                                    failure = True
+
+                                if failure:
+                                    break
+
+                                clientRefNo[com_str[1]] = sock
+                                clientSocket[sock] = com_str[1]
+                                userName[sock] = com_str[2]
+                                userPassword[sock] = com_str[3]
+
+                                if com_str[3] == "dnServer":
+                                    cur_state = state.AUTH
+                                    AUTH_LIST.append(sock)
+                                    sock.send("OKAY "+com_str[1])
+                                    for sck in AUTH_LIST:
+                                        if sck != sock:
+                                            sck.send("ARRV " + clientSocket[sock] + "\r\n" + userName[sock] + "\r\n" + "description...")
+                                    
+                                    for srvr in SRVR_LIST:
+                                        srvr.send("ARRV " + clientSocket[sock] + "\r\n" + userName[sock] + "\r\n" + "description..." + "\r\n" + "1")
+
+                                else:
+                                    sock.send("FAIL "+com_str[1]+"\r\nPASSWORD")
 
                         elif com_str[0] == "SEND" and cur_state == state.AUTH and not this_is_server:
 
                             cur_state == state.SEND
                             sock.send("OKAY "+com_str[1])
 
-                            if com_str[2] == "*":
-                                msg = ""
-                                for m in com_str[3:]:
-                                    msg += m
+                            msg = ""
+                            for m in com_str[3:]:
+                                msg += m
 
+                            if len(msg) > 4096:
+                                sock.send("FAIL "+com_str[1]+"\r\nLENGHT")
+                                break
+
+                            elif not msg.isalnum():
+                                sock.send("INVD 0")
+                                break
+
+                            if com_str[2] == "*":
+                               
                                 #Broadcast to clients
                                 for sck in AUTH_LIST:
                                     if sck != sock:
@@ -202,13 +229,26 @@ if __name__ == "__main__":
 
                                 #broadcast_data(sock, "SEND "+ com_str[1] + "\r\n" + clientSocket[sock] + "\r\n" + msg)
                             else:
-                                msg = ""
-                                for m in com_str[3:]:
-                                    msg += m
                                 clientRefNo[com_str[2]].send("SEND " + com_str[1] + "\r\n" + clientSocket[sock] + "\r\n" + msg)
 
-                        elif com_str[0] == "ACKN" and cur_state == state.AUTH :
-                            clientRefNo[com_str[2]].send("ACKN "+ com_str[1])
+                        elif com_str[0] == "ACKN" and cur_state == state.AUTH:
+                            try:
+                                if clientSocket[sock]:
+                                    try:
+                                        if clientRefNo[com_str[2]]:
+                                            clientRefNo[com_str[2]].send("ACKN "+ com_str[1])
+                                    except:
+                                        for srvr in SRVR_LIST:
+                                            srvr.send("ACKN "+ com_str[1] + "\r\n" + com_str[2] + "\r\n" + clientSocket[sock])
+                                    
+                            except:
+                                try:
+                                    if clientRefNo[com_str[2]]:
+                                        clientRefNo[com_str[2]].send("ACKN "+ com_str[1])
+                                except:
+                                    for srvr in SRVR_LIST:
+                                        srvr.send("ACKN "+ com_str[1] + "\r\n" + com_str[2])
+                            
                             #broadcast_data(sock, "\r" + '<' + str(sock.getpeername()) + '> ' + com_str[3])
 
                         elif com_str[0] == "SRVR":
@@ -242,8 +282,12 @@ if __name__ == "__main__":
                         elif com_str[0] == "SEND" and this_is_server:
                             print com_str
                          #Broadcast to clients
+                            msg = ""
+                            for m in com_str[4:]:
+                                msg += m
                             for sck in AUTH_LIST:
-                                sck.send("SEND "+ com_str[1] + "\r\n" + com_str[3] + "\r\n" + com_str[4])
+                                print "sent client"
+                                sck.send("SEND "+ com_str[1] + "\r\n" + com_str[3] + "\r\n" + msg)
                             
                          #    #Broadcast to servers
                          #    for srvr in SRVR_LIST:
@@ -251,11 +295,9 @@ if __name__ == "__main__":
 
                             print "SEND"
 
-                        elif com_str[0] == "ACKN":
-                            print "ACKN"
-
                         elif com_str[0] == "INVD" and com_str[1] == 0:
-                            print "close connection"
+                            print "server close connection"
+                            sock.close()
 
                     except:
                         # If chatClient pressed ctrl+c for example

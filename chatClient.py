@@ -127,7 +127,7 @@ def main():
 
                 # If FAIL
                 elif authResponse[0] == commands[4]:
-                   if authResponse[2] == "NAME":
+                   if authResponse[2] == "LENGHT":
                        print authResponse[0] + " " + authResponse[1] + " " + authResponse[2] + ": The chat message text is too long."
                    elif authResponse[2] == commands[5]:
                         print authResponse[0] + " " + authResponse[1] + " " + authResponse[2] + ": A malformed message or a message that is not valid in the current state of the client."
