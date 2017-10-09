@@ -156,7 +156,6 @@ if __name__ == "__main__":
 
     try:
         main()
-
     except KeyboardInterrupt:
         s.send("CLOSED")
         s.close()

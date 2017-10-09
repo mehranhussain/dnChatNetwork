@@ -51,7 +51,7 @@ if __name__ == "__main__":
     AUTH_LIST = []
     SRVR_LIST = []
     RECV_BUFFER = 4096
-    PORT = 42015
+    PORT = 42016
     backlog =  10
     HOST =  ""#get_ip_address('wlp2s0') #"10.9.24.36"
 
@@ -154,6 +154,7 @@ if __name__ == "__main__":
                             this_is_server = True
                     except:
                         this_is_server = False
+                    print this_is_server
 
                     try:
                         if com_str[0] == "AUTH":
@@ -188,22 +189,22 @@ if __name__ == "__main__":
                             if com_str[2] == "*":
                                 msg = ""
                                 for m in com_str[3:]:
-                                    msg += " "+m
+                                    msg += m
 
                                 #Broadcast to clients
                                 for sck in AUTH_LIST:
                                     if sck != sock:
-                                        sck.send("SEND "+ com_str[1] + "\r\n" + com_str[2] + "\r\n" + msg)
+                                        sck.send("SEND "+ com_str[1] + "\r\n" + clientSocket[sock] + "\r\n" + msg)
                                 
                                 #Broadcast to servers
                                 for srvr in SRVR_LIST:
                                     srvr.send("SEND "+ com_str[1] + "\r\n" + com_str[2] + "\r\n" + clientSocket[sock] + "\r\n" + msg)
 
-                                #broadcast_data(sock, "SEND "+ com_str[1] + "\r\n" + com_str[2] + "\r\n" + clientSocket[sock] + "\r\n" + msg)
+                                #broadcast_data(sock, "SEND "+ com_str[1] + "\r\n" + clientSocket[sock] + "\r\n" + msg)
                             else:
                                 msg = ""
                                 for m in com_str[3:]:
-                                    msg += " "+m
+                                    msg += m
                                 clientRefNo[com_str[2]].send("SEND " + com_str[1] + "\r\n" + clientSocket[sock] + "\r\n" + msg)
 
                         elif com_str[0] == "ACKN" and cur_state == state.AUTH :
@@ -211,8 +212,8 @@ if __name__ == "__main__":
                             #broadcast_data(sock, "\r" + '<' + str(sock.getpeername()) + '> ' + com_str[3])
 
                         elif com_str[0] == "SRVR":
-                            serverSocket[CONNECTION_LIST[-1]] = com_str[1]
-                            SRVR_LIST.append(CONNECTION_LIST[-1])
+                            serverSocket[sock] = com_str[1]
+                            SRVR_LIST.append(sock)
                             print "The communication is from server"
 
                         elif com_str[0] == "ARRV":
@@ -239,9 +240,10 @@ if __name__ == "__main__":
                             print "The following user is not reachable" + com_str[1]
 
                         elif com_str[0] == "SEND" and this_is_server:
+                            print com_str
                          #Broadcast to clients
                             for sck in AUTH_LIST:
-                                sck.send("SEND "+ com_str[1] + "\r\n" + com_str[2] + "\r\n" + msg)
+                                sck.send("SEND "+ com_str[1] + "\r\n" + com_str[3] + "\r\n" + com_str[4])
                             
                          #    #Broadcast to servers
                          #    for srvr in SRVR_LIST:
