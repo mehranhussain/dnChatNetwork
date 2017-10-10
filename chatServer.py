@@ -9,6 +9,9 @@ import fcntl
 import struct
 from random import randint
 from collections import defaultdict
+import traceback
+import copy
+import numpy as np
 
 def get_ip_address(ifname):
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -27,6 +30,7 @@ class state(Enum):
     ACKN = 3
     ARRV = 4
     LEFT = 5
+
 
 
 # Function to broadcast chat messages to all connected clients
@@ -50,7 +54,8 @@ if __name__ == "__main__":
     CONNECTION_LIST = []
     AUTH_LIST = []
     SRVR_LIST = []
-    RECV_BUFFER = 4096
+    SRVR_LIST_ADDR = []
+    RECV_BUFFER = 4029
     PORT = 42016
     backlog =  10
     HOST =  ""#get_ip_address('wlp2s0') #"10.9.24.36"
@@ -71,6 +76,8 @@ if __name__ == "__main__":
     clientSocket = {}
     serverRefNo = {}
     serverSocket = {}
+    serverSocketList = {}
+    serverNetwork = {}
     userName = {}
     userPassword = {}
     userDescription = {}
@@ -90,6 +97,18 @@ if __name__ == "__main__":
                 sockfd, addr = server_socket.accept()
                 userDescription[sockfd] = addr
 
+                srv_addr = ""
+                for v in SRVR_LIST_ADDR:
+                    srv_addr += " " + str(v)
+
+                #sockfd.send("SARRV " + str(server_socket.getsockname()[1]) + " " + srv_addr)             
+
+                for srvr in SRVR_LIST:
+                    print "SARRV " + str(server_socket.getsockname()[1]) + " " + srv_addr
+                    srvr.send("SARRV " + str(server_socket.getsockname()[1]) + " " + srv_addr)
+
+                #sockfd.send("SARRV " + str(server_socket.getsockname()[1]) + " " + srv_addr)   
+
                 CONNECTION_LIST.append(sockfd)
                 cur_state = state.CONN
                 print "Client (%s, %s) connected" % addr
@@ -108,7 +127,6 @@ if __name__ == "__main__":
                     except socket.error as msg:
                         print "Socket Error: %s" % msg
 
-
                     # Random number generated for chatClient Reference, ask for name and password
                     rfn = randint(1, 10000)
                     ok = False
@@ -121,8 +139,22 @@ if __name__ == "__main__":
 
                     serverRefNo[rfn] =  srv_in_socket
                     SRVR_LIST.append(srv_in_socket)
+                    SRVR_LIST_ADDR.append(str(srv_in_socket.getsockname()[1]))
                     serverSocket[srv_in_socket] = True
                     CONNECTION_LIST.append(srv_in_socket)
+
+                    srv_addr = ""
+                    for v in SRVR_LIST_ADDR:
+                        srv_addr += " " + str(v)
+
+
+                    for srvr in SRVR_LIST:
+                        print "SARRV " + str(server_socket.getsockname()[1]) + " " + srv_addr
+                        srvr.send("SARRV " + str(server_socket.getsockname()[1]) + " " + srv_addr)
+
+                    for svd in SRVR_LIST_ADDR:
+                        serverSocketList[svd] = [str(server_socket.getsockname()[1])]
+
  
                     srv_in_socket.send("SRVR " + str(rfn))
 
@@ -192,9 +224,54 @@ if __name__ == "__main__":
                                     for sck in AUTH_LIST:
                                         if sck != sock:
                                             sck.send("ARRV " + clientSocket[sock] + "\r\n" + userName[sock] + "\r\n" + "description...")
+
+
+                                    min_hop = 16
+                                    srv_addr = ""
+                                    for v in SRVR_LIST_ADDR:
+                                        srv_addr += " " + str(v)
+                                    try:
+                                        serverSocketList[str(server_socket.getsockname()[1])] = srv_addr.split()
+
                                     
+                                                
+                                        hopCount = 0
+                                        listNodes = copy.deepcopy(serverSocketList[str(server_socket.getsockname()[1])])
+                                        listNodeParsed = copy.deepcopy(serverSocketList[str(server_socket.getsockname()[1])])
+
+                                        for pn in serverSocketList[str(server_socket.getsockname()[1])]:
+                                            listNodeParsed.append(pn) # put self node as parsed
+                                        
+                                        listPrevNodes = copy.deepcopy(serverSocketList[str(server_socket.getsockname()[1])])
+
+                                        print "dic: " + str(serverSocketList)
+
+                         
+                                        for node2 in serverSocketList.keys():
+                                            for i in range (0, len(serverSocketList.keys())):
+
+                                                if str(node2) in listNodes:
+                                                    hopCount = i +1
+                                                    if hopCount < min_hop:
+                                                        min_hop = hopCount
+
+                                                else:            
+                                                    for node in listPrevNodes: 
+                                                    # copy all 1 hop neighbor of immediate neighbor             
+                                                        listNodes = copy.deepcopy(list(set(listNodes) | set(serverSocketList[str(node)]) ))
+                                                    print "listnode: " + str(listNodes)
+                                                    listNodes = copy.deepcopy(list(set(listNodes) - set(listNodeParsed))) 
+                                                    # remove the nodes already seen
+                                                    listNodeParsed = copy.deepcopy(list(set(listNodeParsed) | set(listNodes)))
+                                                    listPrevNodes = copy.deepcopy(listNodes)   
+
+                                    except Exception:
+                                        print srv_addr.split()
+                                        print len(serverSocketList.keys())
+                                        print traceback.format_exc()
+
                                     for srvr in SRVR_LIST:
-                                        srvr.send("ARRV " + clientSocket[sock] + "\r\n" + userName[sock] + "\r\n" + "description..." + "\r\n" + "1")
+                                        srvr.send("ARRV " + clientSocket[sock] + "\r\n" + userName[sock] + "\r\n" + "description..." + "\r\n" + str(min_hop))
 
                                 else:
                                     sock.send("FAIL "+com_str[1]+"\r\nPASSWORD")
@@ -254,6 +331,7 @@ if __name__ == "__main__":
                         elif com_str[0] == "SRVR":
                             serverSocket[sock] = com_str[1]
                             SRVR_LIST.append(sock)
+                            SRVR_LIST_ADDR.append(str(sock.getsockname()[1]))
                             print "The communication is from server"
 
                         elif com_str[0] == "ARRV":
@@ -274,7 +352,7 @@ if __name__ == "__main__":
                                     sck.send("ARRV " + uReferenceNumber + "\r\n" + uName + "\r\n" + uDescription)
                                 for srvr in SRVR_LIST:
                                     if srvr != sock:
-                                        srvr.send("ARRV " + uReferenceNumber + "\r\n" + uName + "\r\n" + uDescription + "\r\n" + str(int(uhops)+1))
+                                        srvr.send("ARRV " + uReferenceNumber + "\r\n" + uName + "\r\n" + uDescription + "\r\n" + uhops)
 
                         elif com_str[0] == "LEFT":
                             print "The following user is not reachable" + com_str[1]
@@ -298,6 +376,22 @@ if __name__ == "__main__":
                         elif com_str[0] == "INVD" and com_str[1] == 0:
                             print "server close connection"
                             sock.close()
+
+                        elif com_str[0] == "SARRV":
+
+                            srv_list = ""
+                            for s in com_str[2:]:
+                                srv_list += " " + s
+
+                            srv_list =  srv_list.split()
+
+                            serverSocketList[str(com_str[1])] = str(srv_list)
+                            print "recv"
+
+                            for srvr in SRVR_LIST:
+                                if srvr != sock:
+                                    srvr.send("SARRV " + com_str[1] + " "+ srv_list)
+
 
                     except:
                         # If chatClient pressed ctrl+c for example
