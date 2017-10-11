@@ -56,7 +56,7 @@ if __name__ == "__main__":
     SRVR_LIST = []
     SRVR_LIST_ADDR = []
     RECV_BUFFER = 4029
-    PORT = 42016
+    PORT = 42015
     backlog =  10
     HOST =  ""#get_ip_address('wlp2s0') #"10.9.24.36"
 
@@ -152,8 +152,8 @@ if __name__ == "__main__":
                         print "SARRV " + str(server_socket.getsockname()[1]) + " " + srv_addr
                         srvr.send("SARRV " + str(server_socket.getsockname()[1]) + " " + srv_addr)
 
-                    for svd in SRVR_LIST_ADDR:
-                        serverSocketList[svd] = [str(server_socket.getsockname()[1])]
+                    # for svd in SRVR_LIST_ADDR:
+                    #     serverSocketList[svd] = [str(server_socket.getsockname()[1])]
 
  
                     srv_in_socket.send("SRVR " + str(rfn))
@@ -399,7 +399,7 @@ if __name__ == "__main__":
                         CONNECTION_LIST.remove(sock)
 
                 except:
-                    broadcast_data(sock, "Client (%s, %s) is offline" % addr)
+                    #broadcast_data(sock, "Client (%s, %s) is offline" % addr)
                     print "Client (%s, %s) is offline" % addr
                     sock.close()
                     CONNECTION_LIST.remove(sock)
