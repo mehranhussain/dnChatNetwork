@@ -10,6 +10,8 @@ from random import randint
 # Declaring socket
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
+userName = ""
+
 # Main function
 def main():
 
@@ -58,6 +60,7 @@ def main():
             authMessage += str(chatClientReference)
             authMessage += " \r\n"
             authMessage += chatClientName
+            userName = chatClientName
             authMessage += "\r\n"
             authMessage += chatClientPassword
 
@@ -80,6 +83,7 @@ def main():
                     print data
                     authFlag = False
                     AUTHENTICATED = True
+
                     break
 
                 # If FAIL
@@ -115,7 +119,8 @@ def main():
                 # If SEND
                 elif authResponse[0] == commands[1]:
                     print data
-                    s.send("ACKN " + authResponse[1]  + "\r\n" + authResponse[2])
+                    idclt = randint(100, 50000)
+                    s.send("ACKN " + authResponse[1]  + "\r\n" + authResponse[2] + "\r\n" + str(s.getsockname()[1]))
 
                 # If ARRV
                 elif authResponse[0] == commands[6]:
@@ -127,18 +132,31 @@ def main():
 
                 # If FAIL
                 elif authResponse[0] == commands[4]:
-                   if authResponse[2] == "LENGHT":
-                       print authResponse[0] + " " + authResponse[1] + " " + authResponse[2] + ": The chat message text is too long."
-                   elif authResponse[2] == commands[5]:
+                    if authResponse[2] == "LENGHT":
+                        print authResponse[0] + " " + authResponse[1] + " " + authResponse[2] + ": The chat message text is too long."
+                    elif authResponse[2] == commands[5]:
                         print authResponse[0] + " " + authResponse[1] + " " + authResponse[2] + ": A malformed message or a message that is not valid in the current state of the client."
-                        s.close()
-                        print "Connection to chatServer closed."
+                    
+                    s.close()
+                    print "Connection to chatServer closed"
+                
+                elif authResponse[0] == "CLTS":
+
+                    for i in range(1,len(authResponse)):
+                        print authResponse[i]
+
                 else:
                     print data
+
 
             else:
                 if AUTHENTICATED == True:
                     chatMessageInput = sys.stdin.readline()
+
+                    if "list" in chatMessageInput:
+                        s.send("CLTS " + str(userName))
+                        break
+		    
                     chatMessageRcvr = raw_input("Enter * for broadcasting or Reference Number of specific client: ")
 
                     chatMessage = commands[1]

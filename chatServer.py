@@ -67,7 +67,7 @@ if __name__ == "__main__":
     RECV_BUFFER = 4029
     PORT = port
     backlog =  10
-    HOST =  ""#get_ip_address('wlp2s0') #"10.9.24.36"
+    HOST =  "127.0.0.1"#get_ip_address('wlp2s0') #"10.9.24.36"
 
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -141,6 +141,7 @@ if __name__ == "__main__":
                     # Connect to chatServer     
                     try:        
                         srv_in_socket.connect((srv_in[1], int(port)))
+  
                     except socket.error as msg:     
                         print "Socket Error: %s" % msg      
                     # Random number generated for chatClient Reference, ask for name and password       
@@ -285,6 +286,7 @@ if __name__ == "__main__":
                                 for m in com_str[3:]:
                                     msg +=  m + " "
 
+
                                 if len(msg) > 4096:
                                     sock.send("FAIL "+com_str[1]+"\r\nLENGHT")
                                     break
@@ -313,10 +315,11 @@ if __name__ == "__main__":
                                             srvr.send("SEND "+ com_str[1] + "\r\n" + com_str[2] + "\r\n" + clientSocket[sock] + "\r\n" + msg)
 
                         elif com_str[0] == "ACKN" and cur_state == state.AUTH:
-                            if com_str[1] in ackLoopRef:
+
+                            if com_str[3] in ackLoopRef:
                                 pass
                             else:
-                                ackLoopRef[com_str[1]] = True
+                                ackLoopRef[com_str[3]] = True
                                 try:
                                     if clientSocket[sock]:
                                         try:
@@ -324,17 +327,17 @@ if __name__ == "__main__":
                                                 clientRefNo[com_str[2]].send("ACKN "+ com_str[1])
                                         except:
                                             for srvr in SRVR_LIST:
-                                                srvr.send("ACKN "+ com_str[1] + "\r\n" + com_str[2] + "\r\n" + clientSocket[sock])
-                                        
+                                                srvr.send("ACKN "+ com_str[1] + "\r\n" + com_str[2] + "\r\n" + com_str[3])
+
                                 except:
                                     try:
                                         if clientRefNo[com_str[2]]:
                                             clientRefNo[com_str[2]].send("ACKN "+ com_str[1])
                                     except:
                                         for srvr in SRVR_LIST:
-                                            srvr.send("ACKN "+ com_str[1] + "\r\n" + com_str[2])
-                        
-                        
+                                            srvr.send("ACKN "+ com_str[1] + "\r\n" + com_str[2] + "\r\n" + com_str[3])
+                            
+                            
                         elif com_str[0] == "SRVR":     
 
                             serverSocket[sock] = com_str[1]     
