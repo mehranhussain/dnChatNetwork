@@ -65,7 +65,7 @@ if __name__ == "__main__":
     RECV_BUFFER = 4029
     PORT = port
     backlog =  10
-    HOST =  ""#get_ip_address('wlp2s0') #"10.9.24.36"
+    HOST =  "127.0.0.1"#get_ip_address('wlp2s0') #"10.9.24.36"
 
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -131,8 +131,8 @@ if __name__ == "__main__":
                 if srv_in[0] == "connect":      
                     srv_in_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)       
                     # Connect to chatServer     
-                    try:        
-                        srv_in_socket.connect((srv_in[1], int(srv_in[2])))
+                    try:
+        		srv_in_socket.connect((srv_in[1], int(srv_in[2])))
                     except socket.error as msg:     
                         print "Socket Error: %s" % msg      
                     # Random number generated for chatClient Reference, ask for name and password       
@@ -270,7 +270,7 @@ if __name__ == "__main__":
 
                                 msg = ""
                                 for m in com_str[3:]:
-                                    msg +=  m
+                                    msg +=  " " + m
 
                                 if len(msg) > 4096:
                                     sock.send("FAIL "+com_str[1]+"\r\nLENGHT")
@@ -379,7 +379,7 @@ if __name__ == "__main__":
 
                                 msg = ""        
                                 for m in com_str[4:]:       
-                                    msg +=  m
+                                    msg +=    " " + m
 
                                 if com_str[2] != "*":       
                                     if com_str[2] in clientRefNo:

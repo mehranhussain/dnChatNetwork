@@ -131,14 +131,21 @@ def main():
                        print authResponse[0] + " " + authResponse[1] + " " + authResponse[2] + ": The chat message text is too long."
                    elif authResponse[2] == commands[5]:
                         print authResponse[0] + " " + authResponse[1] + " " + authResponse[2] + ": A malformed message or a message that is not valid in the current state of the client."
-                        s.close()
-                        print "Connection to chatServer closed."
+		
+		# Display List
+		elif authReposnse[] == 'CLTS':
+		    print authresponse
+
+		s.close()
+                print "Connection to chatServer closed."
                 else:
                     print data
 
             else:
                 if AUTHENTICATED == True:
                     chatMessageInput = sys.stdin.readline()
+		    if chatMessage == "list":
+			s.send("CLTS")
                     chatMessageRcvr = raw_input("Enter * for broadcasting or Reference Number of specific client: ")
 
                     chatMessage = commands[1]
