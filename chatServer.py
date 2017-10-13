@@ -11,7 +11,6 @@ from random import randint
 from collections import defaultdict
 import traceback
 import copy
-import numpy as np
 
 def get_ip_address(ifname):
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -51,11 +50,14 @@ def broadcast_data(sock, message):
 if __name__ == "__main__":
 
        # Usage of the chatClient.py
-    if len(sys.argv) < 2:
-        print 'Usage : python chatServer.py port'
+    if len(sys.argv) < 1:
+        print 'Usage : python chatServer.py port(optional)'
         sys.exit()
-
-    port = int(sys.argv[1])
+    elif len(sys.argv) < 2:
+        port = 42015
+    else:
+        port = int(sys.argv[1])
+   
 
     # List to keep track of socket descriptors`
     CONNECTION_LIST = []
@@ -127,21 +129,27 @@ if __name__ == "__main__":
 
             # Some incoming message from a client      
             elif sock == sys.stdin:     
-                srv_in = sys.stdin.readline().split()       
+                srv_in = sys.stdin.readline().split()  
+                 
+                if len(srv_in) > 2:
+                    port = srv_in[2]
+                else:
+                    port = 42015
+         
                 if srv_in[0] == "connect":      
                     srv_in_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)       
                     # Connect to chatServer     
                     try:        
-                        srv_in_socket.connect((srv_in[1], int(srv_in[2])))
+                        srv_in_socket.connect((srv_in[1], int(port)))
                     except socket.error as msg:     
                         print "Socket Error: %s" % msg      
                     # Random number generated for chatClient Reference, ask for name and password       
                     rfn = randint(1, 10000)     
-                    ok = False      
+                    ok = False
                     while not ok:       
                         try:        
-                            while serverRefNo[rfn]:     
-                                rfn = randint(1, 10000)     
+                            while serverRefNo[rfn]:
+                                rfn = randint(1, 10000)
                         except KeyError:        
                             ok = True       
 
@@ -164,7 +172,10 @@ if __name__ == "__main__":
                     #     serverSocketList[svd] = [str(server_socket.getsockname()[1])]     
                         
                 
-                else:       
+                elif srv_in[0] == "exit":
+                    server_socket.close()
+                    sys.exit()
+                else:
                     print "Enter the correct command e.g. connect 133.0.9.3 42015"
 
 
@@ -191,8 +202,10 @@ if __name__ == "__main__":
                             srvr.send("LEFT " + clientSocket[sock])
                             print "srvr left sent"
 
+                        del userName[sock]
                         del clientSocket[sock]
                         del clientRefNo[ref]
+
             
 
                     # command = com_str[0]
@@ -270,7 +283,7 @@ if __name__ == "__main__":
 
                                 msg = ""
                                 for m in com_str[3:]:
-                                    msg +=  m
+                                    msg +=  m + " "
 
                                 if len(msg) > 4096:
                                     sock.send("FAIL "+com_str[1]+"\r\nLENGHT")
@@ -363,6 +376,7 @@ if __name__ == "__main__":
                                     srvr.send("LEFT " + ref)
 
                                 sk = clientRefNo[ref]
+                                del userName[sk]
                                 del clientRefNo[ref]
                                 del clientSocket[sk]
 
@@ -379,7 +393,7 @@ if __name__ == "__main__":
 
                                 msg = ""        
                                 for m in com_str[4:]:       
-                                    msg +=  m
+                                    msg +=  m + " "
 
                                 if com_str[2] != "*":       
                                     if com_str[2] in clientRefNo:
@@ -405,6 +419,15 @@ if __name__ == "__main__":
                         elif com_str[0] == "INVD" and com_str[1] == 0:
                             print "server close connection"
                             sock.close()
+                        elif com_str[0] == "CLTS":
+
+                            clts = ""
+                            for s, name in userName.iteritems():
+                                clts += "\r\n" + name
+
+                            sock.send("CLTS" + clts)
+
+
 
                         # elif com_str[0] == "SARRV":  
                         #     print "sr arrival"     
