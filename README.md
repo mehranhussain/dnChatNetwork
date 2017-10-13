@@ -7,3 +7,13 @@ Our project consists of multi-clients and multi servers connecting with each oth
 The dnChatNetwork can send broadcast messages to all the clients connected in a server. Not only a single server but also in a network of servers the implementation works fine. We can send a message to a specific user too. We handle the client or server leaving or arriving in the network and successfully notifying all.
 
 We are also handling a few conditions other than this that are quite useful if implemented on a bigger scale like checking for a malformed message, checking for duplicate clients etc.
+
+#### Usage
+
+#### For chatClient:
+
+python chatClient.py ip_address port
+
+#### For  chatServer
+
+python chatServer.py port
